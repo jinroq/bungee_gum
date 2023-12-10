@@ -63,7 +63,9 @@ class BungeeGum::RubyBuild
     }
     opt.parse!(ARGV)
 
-    if !param[:with].empty? || !param[:all_build] || param[:only].keys.size > 1
+    if param[:only].keys.size > 1 ||
+       (param[:only].keys.size == 1 && !param[:with].empty?) ||
+       (param[:only].keys.size == 1 && !!param[:all_build])
       puts "`--only-universalparser` can not be used in conjunction with other options." if params.include?('--only-universalparser')
       puts "`--only-yjit` can not be used in conjunction with other options." if params.include?('--only-yjit')
       puts "`--only-rjit` can not be used in conjunction with other options." if params.include?('--only-rjit')
