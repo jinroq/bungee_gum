@@ -6,7 +6,7 @@ Bungee Gum collects Ruby building and testing logs.
 
 This gem gets the latest source code from the [ruby/ruby](https://github.com/ruby/ruby) master branch. Then, build source codes in the same way as ["Building Ruby"](https://docs.ruby-lang.org/en/master/contributing/building_ruby_md.html). And also run tests (i.e. `make test-all`).
 
-Log files are compressed as *.gz and saved in 'log' directory. `log` directory will be created in the same directory as the directory where Bungee Gum is executed.
+Log files are compressed as `.gz` and saved in `logs` directory. `logs` directory will be created in the same directory as the directory where Bungee Gum is executed.
 
 ## Installation
 
@@ -23,10 +23,6 @@ Install the gem and add to the application's Gemfile by executing:
 If you installed it yourself:
 
     $ bgum
-
-> [!IMPORTANT]
-> 
-
 
 ## Development
 
