@@ -75,6 +75,7 @@ class BungeeGum::RubyBuild
 
     clone_or_pull(LOCAL_RUBY_REPOSITORY, true)
     Dir.mkdir(INSTALL_PREFIX_BASE, 0755) unless Dir.exist?(INSTALL_PREFIX_BASE)
+    Dir.mkdir('logs', 0755) unless Dir.exist?('./logs')
     if param[:only].keys.size == 0
       clone_or_pull(FOR_BUILD_REPOSITORY)
       fork {
@@ -143,8 +144,8 @@ class BungeeGum::RubyBuild
     wd = working_dir[repo_dir.to_sym]
     current_dir = Dir.pwd
 
-    build_gz = "#{current_dir}/log/ruby-#{build_type}-build.#{now}.log.gz"
-    test_gz = "#{current_dir}/log/ruby-#{build_type}-test.#{now}.log.gz"
+    build_gz = "#{current_dir}/logs/ruby-#{build_type}-build.#{now}.log.gz"
+    test_gz = "#{current_dir}/logs/ruby-#{build_type}-test.#{now}.log.gz"
 
     Dir.chdir(wd) do
       unless Dir.exist?("#{current_dir}/configure")
