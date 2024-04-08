@@ -22,7 +22,7 @@ class BungeeGum::RubyBuild
     @working_dir = {}
     @now = Time.now.strftime('%Y%m%d%H%M%S')
     @opt = OptionParser.new
-    @opt.version = '0.0.1'
+    @opt.version = BungeeGum::VERSION
   end
 
   def run
@@ -33,35 +33,35 @@ class BungeeGum::RubyBuild
     param[:only] = {}
     param[:skip] = {}
 
-    opt.on('--with-universalparser', 'Add `--with-universalparser` if you also would like to build with Universal Parser mode enabled.') {|v|
+    @opt.on('--with-universalparser', 'Add `--with-universalparser` if you also would like to build with Universal Parser mode enabled.') {|v|
       param[:with][:up] = v
       params << '--with-universalparser'
     }
-    opt.on('--only-universalparser', 'Add `--only-universalparser` if you would like to build with only Universal Parser mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-universalparser', 'Add `--only-universalparser` if you would like to build with only Universal Parser mode enabled. This option can not be used in conjunction with other options.') {|v|
       param[:only][:up] = v
       params << '--only-universalparser'
     }
-    opt.on('--with-yjit', 'Add `--with-yjit` if you also would like to build with YJIT mode enabled.') {|v|
+    @opt.on('--with-yjit', 'Add `--with-yjit` if you also would like to build with YJIT mode enabled.') {|v|
       param[:with][:yjit] = v
       params << '--with-yjit'
     }
-    opt.on('--only-yjit', 'Add `--only-yjit` if you would like to build with only YJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-yjit', 'Add `--only-yjit` if you would like to build with only YJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
       param[:only][:yjit] = v
       params << '--only-yjit'
     }
-    opt.on('--with-rjit', 'Add `--with-rjit` if you also would like to build with RJIT mode enabled.') {|v|
+    @opt.on('--with-rjit', 'Add `--with-rjit` if you also would like to build with RJIT mode enabled.') {|v|
       param[:with][:rjit] = v
       params << '--with-rjit'
     }
-    opt.on('--only-rjit', 'Add `--only-rjit` if you would like to build with only RJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-rjit', 'Add `--only-rjit` if you would like to build with only RJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
       param[:only][:rjit] = v
       params << '--only-rjit'
     }
-    opt.on('--all-build', 'Add `--all-build` if you would like to build with all modes enabled.') {|v|
+    @opt.on('--all-build', 'Add `--all-build` if you would like to build with all modes enabled.') {|v|
       param[:all_build] = v
       params << '--all-build'
     }
-    opt.parse!(ARGV)
+    @opt.parse!(ARGV)
 
     if param[:only].keys.size > 1 ||
        (param[:only].keys.size == 1 && !param[:with].empty?) ||
@@ -121,34 +121,31 @@ class BungeeGum::RubyBuild
 
   private
 
-  attr_accessor :working_dir
-  attr_reader :base_ruby_repo, :now, :opt
-
   def clone_or_pull(repo_dir, from_gh = false)
     key = repo_dir.to_sym
-    working_dir[key] = "#{Dir.pwd}/#{repo_dir}"
-    wd = working_dir[key]
+    @working_dir[key] = "#{Dir.pwd}/#{repo_dir}"
+    wd = @working_dir[key]
     if Dir.exist?("#{wd}/.git")
-      g = Git.open(wd, :log => Logger.new(STDOUT))
+      g = Git.open(wd, log: Logger.new(STDOUT))
       g.pull
     else
       if from_gh
         Git.clone(GITHUB_RUBY_REPOSITORY, repo_dir)
       else
-        Git.clone(base_ruby_repo, repo_dir)
+        Git.clone(@base_ruby_repo, repo_dir)
       end
     end
   end
 
   def make_and_test(repo_dir, build_type, configure_option)
-    wd = working_dir[repo_dir.to_sym]
+    wd = @working_dir[repo_dir.to_sym]
     current_dir = Dir.pwd
 
-    build_gz = "#{current_dir}/logs/ruby-#{build_type}-build.#{now}.log.gz"
-    test_gz = "#{current_dir}/logs/ruby-#{build_type}-test.#{now}.log.gz"
+    build_gz = "#{current_dir}/logs/ruby-#{build_type}-build.#{@now}.log.gz"
+    test_gz = "#{current_dir}/logs/ruby-#{build_type}-test.#{@now}.log.gz"
 
     Dir.chdir(wd) do
-      unless Dir.exist?("#{current_dir}/configure")
+      unless File.exist?('configure')
         system('./autogen.sh > /dev/null 2>&1')
         system("./configure #{configure_option} > /dev/null 2>&1")
       end

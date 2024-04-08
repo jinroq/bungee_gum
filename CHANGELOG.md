@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [0.1.2] - 2024-04-08
+
+### Fixed
+
+- Fixed a bug where bungee_gum would not build as expected when run for the first time.
+- Revised the README.
+
 ## [0.1.1] - 2023-12-12
 
 ### Fixed
