@@ -9,13 +9,17 @@ class BungeeGum::RubyBuild
   FOR_BUILD_REPOSITORY = 'build-ruby-repo'
   FOR_UP_BUILD_REPOSITORY = 'build-up-ruby-repo'
   FOR_YJIT_BUILD_REPOSITORY = 'build-yjit-ruby-repo'
+  FOR_FORCE_YJIT_BUILD_REPOSITORY = 'build-force-yjit-ruby-repo'
   FOR_RJIT_BUILD_REPOSITORY = 'build-rjit-ruby-repo'
+  FOR_FORCE_RJIT_BUILD_REPOSITORY = 'build-force-rjit-ruby-repo'
 
   INSTALL_PREFIX_BASE = "#{Dir.home}/.rubies"
   INSTALL_PREFIX_RUBY = "#{INSTALL_PREFIX_BASE}/ruby-master"
   INSTALL_PREFIX_RUBY_UP = "#{INSTALL_PREFIX_BASE}/ruby-universal-parser"
   INSTALL_PREFIX_RUBY_YJIT = "#{INSTALL_PREFIX_BASE}/ruby-yjit"
+  INSTALL_PREFIX_RUBY_FORCE_YJIT = "#{INSTALL_PREFIX_BASE}/ruby-force-yjit"
   INSTALL_PREFIX_RUBY_RJIT = "#{INSTALL_PREFIX_BASE}/ruby-rjit"
+  INSTALL_PREFIX_RUBY_FORCE_RJIT = "#{INSTALL_PREFIX_BASE}/ruby-force-rjit"
 
   def initialize
     @base_ruby_repo = "#{Dir.pwd}/#{LOCAL_RUBY_REPOSITORY}"
@@ -33,31 +37,47 @@ class BungeeGum::RubyBuild
     param[:only] = {}
     param[:skip] = {}
 
-    @opt.on('--with-universalparser', 'Add `--with-universalparser` if you also would like to build with Universal Parser mode enabled.') {|v|
+    @opt.on('--with-universalparser', 'Add `--with-universalparser` if you also would like to build with enabled Universal Parser. This is equivalent to adding `cppflags=-DUNIVERSAL_PARSER`.') {|v|
       param[:with][:up] = v
       params << '--with-universalparser'
     }
-    @opt.on('--only-universalparser', 'Add `--only-universalparser` if you would like to build with only Universal Parser mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-universalparser', 'Add `--only-universalparser` if you would like to build with only enabled Universal Parser. This is equivalent to adding `cppflags=-DUNIVERSAL_PARSER`. This option can not be used in conjunction with other options.') {|v|
       param[:only][:up] = v
       params << '--only-universalparser'
     }
-    @opt.on('--with-yjit', 'Add `--with-yjit` if you also would like to build with YJIT mode enabled.') {|v|
+    @opt.on('--with-yjit', 'Add `--with-yjit` if you also would like to build with enabled YJIT. This is equivalent to adding `--enable-yjit`.') {|v|
       param[:with][:yjit] = v
       params << '--with-yjit'
     }
-    @opt.on('--only-yjit', 'Add `--only-yjit` if you would like to build with only YJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-yjit', 'Add `--only-yjit` if you would like to build with only enabled YJIT. This is equivalent to adding `--enable-yjit`. This option can not be used in conjunction with other options.') {|v|
       param[:only][:yjit] = v
       params << '--only-yjit'
     }
-    @opt.on('--with-rjit', 'Add `--with-rjit` if you also would like to build with RJIT mode enabled.') {|v|
+    @opt.on('--with-force-yjit', 'Add `--with-force-yjit` if you also would like to build with enabled YJIT. This is equivalent to adding `cppflags=-DYJIT_FORCE_ENABLE`.') {|v|
+      param[:with][:force_yjit] = v
+      params << '--with-force-yjit'
+    }
+    @opt.on('--only-force-yjit', 'Add `--only-force-yjit` if you would like to build with only enabled YJIT. This is equivalent to adding `cppflags=-DYJIT_FORCE_ENABLE`. This option can not be used in conjunction with other options.') {|v|
+      param[:only][:force_yjit] = v
+      params << '--only-force-yjit'
+    }
+    @opt.on('--with-rjit', 'Add `--with-rjit` if you also would like to build with enabled RJIT. This is equivalent to adding `--enable-rjit --disable-yjit`.') {|v|
       param[:with][:rjit] = v
       params << '--with-rjit'
     }
-    @opt.on('--only-rjit', 'Add `--only-rjit` if you would like to build with only RJIT mode enabled. This option can not be used in conjunction with other options.') {|v|
+    @opt.on('--only-rjit', 'Add `--only-rjit` if you would like to build with only enabled RJIT. This is equivalent to adding `--enable-rjit --disable-yjit`. This option can not be used in conjunction with other options.') {|v|
       param[:only][:rjit] = v
       params << '--only-rjit'
     }
-    @opt.on('--all-build', 'Add `--all-build` if you would like to build with all modes enabled.') {|v|
+    @opt.on('--with-force-rjit', 'Add `--with-force-rjit` if you also would like to build with enabled RJIT. This is equivalent to adding `cppflags=-DRJIT_FORCE_ENABLE`.') {|v|
+      param[:with][:force_rjit] = v
+      params << '--with-force-rjit'
+    }
+    @opt.on('--only-force-rjit', 'Add `--only-force-rjit` if you would like to build with only enabled RJIT. This is equivalent to adding `cppflags=-DRJIT_FORCE_ENABLE`. This option can not be used in conjunction with other options.') {|v|
+      param[:only][:force_rjit] = v
+      params << '--only-force-rjit'
+    }
+    @opt.on('--all-build', 'Add `--all-build` if you would like to build with all patterns that include `cppflags` option') {|v|
       param[:all_build] = v
       params << '--all-build'
     }
@@ -66,9 +86,11 @@ class BungeeGum::RubyBuild
     if param[:only].keys.size > 1 ||
        (param[:only].keys.size == 1 && !param[:with].empty?) ||
        (param[:only].keys.size == 1 && !!param[:all_build])
-      puts "`--only-universalparser` can not be used in conjunction with other options." if params.include?('--only-universalparser')
-      puts "`--only-yjit` can not be used in conjunction with other options." if params.include?('--only-yjit')
-      puts "`--only-rjit` can not be used in conjunction with other options." if params.include?('--only-rjit')
+      only_error('--only-universalparser') if params.include?('--only-universalparser')
+      only_error('--only-yjit') if params.include?('--only-yjit')
+      only_error('--only-force-yjit') if params.include?('--only-force-yjit')
+      only_error('--only-rjit') if params.include?('--only-rjit')
+      only_error('--only-force-rjit') if params.include?('--only-force-rjit')
 
       exit 1
     end
@@ -106,13 +128,33 @@ class BungeeGum::RubyBuild
       }
     end
 
+    if param[:only][:force_yjit] || param[:with][:force_yjit] || param[:all_build]
+      clone_or_pull(FOR_FORCE_YJIT_BUILD_REPOSITORY)
+      fork {
+        make_and_test(
+          FOR_FORCE_YJIT_BUILD_REPOSITORY,
+          'force-yjit',
+          "--prefix=#{INSTALL_PREFIX_RUBY_FORCE_YJIT} cppflags=-DYJIT_FORCE_ENABLE --disable-install-doc")
+      }
+    end
+
     if param[:only][:rjit] || param[:with][:rjit] || param[:all_build]
       clone_or_pull(FOR_RJIT_BUILD_REPOSITORY)
       fork {
         make_and_test(
           FOR_RJIT_BUILD_REPOSITORY,
           'rjit',
-          "--prefix=#{INSTALL_PREFIX_RUBY_RJIT} cppflags=-DRJIT_FORCE_ENABLE --disable-install-doc")
+          "--prefix=#{INSTALL_PREFIX_RUBY_RJIT} --enable-rjit --disable-yjit --disable-install-doc")
+      }
+    end
+
+    if param[:only][:force_rjit] || param[:with][:force_rjit] || param[:all_build]
+      clone_or_pull(FOR_FORCE_RJIT_BUILD_REPOSITORY)
+      fork {
+        make_and_test(
+          FOR_FORCE_RJIT_BUILD_REPOSITORY,
+          'force-rjit',
+          "--prefix=#{INSTALL_PREFIX_RUBY_FORCE_RJIT} cppflags=-DRJIT_FORCE_ENABLE --disable-install-doc")
       }
     end
 
@@ -160,5 +202,9 @@ class BungeeGum::RubyBuild
       system("make test-all 2>&1 | gzip -c > #{test_gz}")
       file.close
     end
+  end
+
+  def only_error(option)
+    puts "`#{option}` can not be used in conjunction with other options."
   end
 end

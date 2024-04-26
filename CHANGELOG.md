@@ -1,5 +1,20 @@
 ## [Unreleased]
 
+## [0.1.3] - 2024-04-26
+
+### Added
+
+- Added the following options.
+    - `--with-force-yjit`
+    - `--only-force-yjit`
+    - `--with-force-rjit`
+    - `--only-force-rjit`
+
+### Changed
+
+- Changed from 'cppflags=-DRJIT_FORCE_ENABLE' to '--enable-rjit --disable-yjit' that the options used with '--with-rjit' and '--only-rjit'.
+- Changed help messages for `--with-universalparser`, `--only-universalparser`, `--with-yjit`, `--only-yjit`, `--with-rjit`, and `--only-rjit`.
+
 ## [0.1.2] - 2024-04-08
 
 ### Fixed
